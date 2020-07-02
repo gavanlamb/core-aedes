@@ -1,0 +1,23 @@
+{
+  "name": "core.aedes",
+  "version": "1.0.0",
+  "description": "Aedes implementation",
+  "repository": "https://thing-cloud@dev.azure.com/thing-cloud/Core/_git/Core.Aedes",
+  "main": "index.js",
+  "scripts": {
+    "compile": "ts-node build.ts && tsc",
+    "start": "node dist/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aedes": "^0.42.3"
+  },
+  "devDependencies": {
+    "@types/node": "^14.0.14",
+    "@types/shelljs": "^0.8.8",
+    "shelljs": "^0.8.4"
+  }
+}
