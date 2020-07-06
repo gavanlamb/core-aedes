@@ -62,6 +62,10 @@ stages:
                     runOnce:
                         deploy:
                             steps:
+                                -   task: CmdLine@2
+                                    inputs:
+                                        script: |
+                                            sed -i 's/{BUILD_NUMBER}/$(Build.BuildId)/g' $(Pipeline.Workspace)/cicd/production.yml
                                 -   task: Kubernetes@1
                                     inputs:
                                         connectionType: 'Kubernetes Service Connection'
