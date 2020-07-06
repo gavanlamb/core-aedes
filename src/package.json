@@ -18,6 +18,8 @@
   "devDependencies": {
     "@types/node": "^14.0.14",
     "@types/shelljs": "^0.8.8",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.6",
     "shelljs": "^0.8.4"
   }
 }

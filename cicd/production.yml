@@ -1,0 +1,21 @@
+---
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+    name: "core-aedes"
+    namespace: "default"
+    labels:
+        app: "core-aedes"
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: "core-aedes"
+    template:
+        metadata:
+            labels:
+                app: "core-aedes"
+        spec:
+            containers:
+                -   name: "core-aedes"
+                    image: "gcr.io/production-282111/core-aedes:{BUILD_NUMBER}"

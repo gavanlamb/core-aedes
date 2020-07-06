@@ -1,0 +1,75 @@
+# Docker
+# Build a Docker image
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+resources:
+    -   repo: self
+
+stages:
+    -   stage: Build
+        displayName: Build
+        jobs:
+            -   job: Api
+                displayName: Api
+                pool:
+                    vmImage: 'ubuntu-latest'
+                steps:
+                    -   task: DockerInstaller@0
+                        displayName: Install Docker
+                        inputs:
+                            dockerVersion: '17.09.0-ce'
+                    -   task: Bash@3
+                        displayName: Build Api
+                        inputs:
+                            targetType: 'inline'
+                            script: 'docker build --tag gcr.io/production-282111/core-aedes:$(Build.BuildId) .'
+
+                    -   task: Docker@2
+                        displayName: Prod - GCR - Login
+                        inputs:
+                            command: login
+                            containerRegistry: 'gcr-production'
+                    -   task: Bash@3
+                        displayName: Prod - Push
+                        inputs:
+                            targetType: 'inline'
+                            script: 'docker push gcr.io/production-282111/core-aedes:$(Build.BuildId)'
+                    -   task: Docker@2
+                        displayName: Prod - GCR - Logout
+                        inputs:
+                            command: logout
+                            containerRegistry: 'gcr-production'
+
+    -   stage: Publish
+        displayName: Publish Artifacts
+        jobs:
+            -   job: Manifests
+                displayName: Manifests
+                steps:
+                    -   publish: $(System.DefaultWorkingDirectory)/cicd
+                        artifact: cicd
+
+    -   stage: Production
+        displayName: Production
+        dependsOn: Publish
+        jobs:
+            -   deployment: Deploy
+                displayName: Deploy
+                environment: Production
+                pool:
+                    vmImage: 'Ubuntu-latest'
+                strategy:
+                    runOnce:
+                        deploy:
+                            steps:
+                                -   task: Kubernetes@1
+                                    inputs:
+                                        connectionType: 'Kubernetes Service Connection'
+                                        kubernetesServiceEndpoint: 'Production-default-1593872553116'
+                                        namespace: 'default'
+                                        command: 'apply'
+                                        useConfigurationFile: true
+                                        configuration: '$(Pipeline.Workspace)/cicd/production.yml'
+                                        secretType: 'dockerRegistry'
+                                        containerRegistryType: 'Container Registry'
+                                        dockerRegistryEndpoint: 'gcr-production'
