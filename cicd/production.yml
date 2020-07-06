@@ -1,21 +1,67 @@
 ---
-apiVersion: "apps/v1"
-kind: "Deployment"
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-    name: "core-aedes"
-    namespace: "default"
+    name: core-aedes
+    namespace: default
     labels:
-        app: "core-aedes"
+        app: core-aedes
 spec:
     replicas: 1
     selector:
         matchLabels:
-            app: "core-aedes"
+            app: core-aedes
     template:
         metadata:
             labels:
-                app: "core-aedes"
+                app: core-aedes
         spec:
             containers:
-                -   name: "core-aedes"
-                    image: "gcr.io/production-282111/core-aedes:{BUILD_NUMBER}"
+                -   name: core-aedes
+                    image: gcr.io/production-282111/core-aedes:{BUILD_NUMBER}
+                    ports:
+                        -   containerPort: 1883
+                            protocol: TCP
+                            name: mqtt
+                    readinessProbe:
+                        tcpSocket:
+                            port: 1883
+                        initialDelaySeconds: 30
+                        periodSeconds: 60
+                        failureThreshold: 60
+                    livenessProbe:
+                        tcpSocket:
+                            port: 1883
+                        initialDelaySeconds: 30
+                        periodSeconds: 60
+                        failureThreshold: 60
+---
+kind: Service
+apiVersion: v1
+metadata:
+    name: core-aedes-discovery
+    annotations:
+        service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+spec:
+    type: ClusterIP
+    selector:
+        app: core-aedes
+    ports:
+        -   protocol: TCP
+            port: 1883
+            targetPort: 1883
+---
+kind: Service
+apiVersion: v1
+metadata:
+    name: core-aedes-loadbalancer
+    annotations:
+        service.spec.externalTrafficPolicy: Local
+spec:
+    type: LoadBalancer
+    selector:
+        app: core-aedes
+    ports:
+        -   protocol: TCP
+            port: 1883
+            targetPort: 1883
